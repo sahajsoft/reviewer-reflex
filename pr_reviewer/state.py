@@ -22,6 +22,7 @@ class PRState(rx.State):
     files: list[dict[str, Any]] = []
     is_loading: bool = False
     error_message: str = ""
+    selected_file: str = ""
 
     def set_pr_url(self, value: str) -> None:
         """Set the PR URL."""
@@ -37,7 +38,23 @@ class PRState(rx.State):
         """Get the number of files changed."""
         return len(self.files)
 
-    async def fetch_pr(self) -> collections.abc.AsyncGenerator[None, None]:
+    @rx.var
+    def selected_file_data(self) -> dict[str, Any] | None:
+        """Get the data for the currently selected file."""
+        if not self.selected_file:
+            return None
+        for f in self.files:
+            if f.get("filename") == self.selected_file:
+                return f
+        return None
+
+    def select_file(self, filename: str) -> None:
+        """Select a file to view."""
+        self.selected_file = filename
+
+    async def fetch_pr(
+        self, form_data: dict[str, Any] | None = None
+    ) -> collections.abc.AsyncGenerator[None, None]:
         """Fetch PR data from GitHub."""
         self.error_message = ""
         self.pr_title = ""
@@ -47,6 +64,7 @@ class PRState(rx.State):
         self.total_additions = 0
         self.total_deletions = 0
         self.files = []
+        self.selected_file = ""
 
         if not self.pr_url.strip():
             self.error_message = "Please enter a PR URL"

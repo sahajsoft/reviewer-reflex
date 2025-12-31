@@ -2,33 +2,39 @@
 
 import reflex as rx
 
+from pr_reviewer.components.file_tree import file_tree
 from pr_reviewer.state import PRState
 
 
 def pr_input() -> rx.Component:
     """Input section for PR URL."""
-    return rx.hstack(
-        rx.input(
-            placeholder="https://github.com/owner/repo/pull/123",
-            value=PRState.pr_url,
-            on_change=PRState.set_pr_url,  # pyright: ignore[reportArgumentType]
-            width="400px",
-            disabled=PRState.is_loading,
-        ),
-        rx.button(
-            rx.cond(
-                PRState.is_loading,
-                rx.hstack(
-                    rx.spinner(size="1"),
-                    rx.text("Loading..."),
-                    spacing="2",
-                ),
-                rx.text("Fetch PR"),
+    return rx.form(
+        rx.hstack(
+            rx.input(
+                placeholder="https://github.com/owner/repo/pull/123",
+                value=PRState.pr_url,
+                on_change=PRState.set_pr_url,  # pyright: ignore[reportArgumentType]
+                width="400px",
+                disabled=PRState.is_loading,
+                name="pr_url",
             ),
-            on_click=PRState.fetch_pr,  # pyright: ignore[reportArgumentType]
-            disabled=PRState.is_loading,
+            rx.button(
+                rx.cond(
+                    PRState.is_loading,
+                    rx.hstack(
+                        rx.spinner(size="1"),
+                        rx.text("Loading..."),
+                        spacing="2",
+                    ),
+                    rx.text("Fetch PR"),
+                ),
+                type="submit",
+                disabled=PRState.is_loading,
+            ),
+            spacing="2",
         ),
-        spacing="2",
+        on_submit=PRState.fetch_pr,  # pyright: ignore[reportArgumentType]
+        reset_on_submit=False,
     )
 
 
@@ -90,7 +96,47 @@ def pr_metadata() -> rx.Component:
                 width="100%",
             ),
             width="100%",
-            max_width="600px",
+        ),
+        rx.fragment(),
+    )
+
+
+def main_content() -> rx.Component:
+    """Main content area with file tree and details."""
+    return rx.cond(
+        PRState.has_pr_loaded,
+        rx.hstack(
+            rx.box(
+                file_tree(),
+                width="300px",
+                flex_shrink="0",
+            ),
+            rx.box(
+                rx.cond(
+                    PRState.selected_file != "",
+                    rx.card(
+                        rx.vstack(
+                            rx.text(PRState.selected_file, weight="bold", size="3"),
+                            rx.text(
+                                "Diff view coming in Step 3", color="gray", size="2"
+                            ),
+                            spacing="2",
+                            align="start",
+                        ),
+                        width="100%",
+                    ),
+                    rx.box(
+                        rx.text("Select a file to view", color="gray"),
+                        padding="8",
+                        text_align="center",
+                        width="100%",
+                    ),
+                ),
+                flex="1",
+            ),
+            spacing="4",
+            width="100%",
+            align="start",
         ),
         rx.fragment(),
     )
@@ -106,10 +152,14 @@ def index() -> rx.Component:
             pr_input(),
             error_display(),
             pr_metadata(),
+            main_content(),
             spacing="5",
-            justify="center",
+            justify="start",
+            padding_top="4",
             min_height="85vh",
+            width="100%",
         ),
+        size="4",
     )
 
 
