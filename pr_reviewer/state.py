@@ -48,6 +48,51 @@ class PRState(rx.State):
                 return f
         return None
 
+    @rx.var
+    def selected_file_diff(self) -> str:
+        """Get the diff patch for the currently selected file."""
+        if not self.selected_file:
+            return ""
+        for f in self.files:
+            if f.get("filename") == self.selected_file:
+                return f.get("patch", "")
+        return ""
+
+    @rx.var
+    def selected_file_has_diff(self) -> bool:
+        """Check if the selected file has a diff available."""
+        return bool(self.selected_file_diff)
+
+    @rx.var
+    def selected_file_additions(self) -> int:
+        """Get additions count for the selected file."""
+        if not self.selected_file:
+            return 0
+        for f in self.files:
+            if f.get("filename") == self.selected_file:
+                return f.get("additions", 0)
+        return 0
+
+    @rx.var
+    def selected_file_deletions(self) -> int:
+        """Get deletions count for the selected file."""
+        if not self.selected_file:
+            return 0
+        for f in self.files:
+            if f.get("filename") == self.selected_file:
+                return f.get("deletions", 0)
+        return 0
+
+    @rx.var
+    def selected_file_status(self) -> str:
+        """Get status for the selected file."""
+        if not self.selected_file:
+            return ""
+        for f in self.files:
+            if f.get("filename") == self.selected_file:
+                return f.get("status", "")
+        return ""
+
     def select_file(self, filename: str) -> None:
         """Select a file to view."""
         self.selected_file = filename

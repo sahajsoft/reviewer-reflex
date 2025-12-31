@@ -102,7 +102,9 @@ def pr_metadata() -> rx.Component:
 
 
 def main_content() -> rx.Component:
-    """Main content area with file tree and details."""
+    """Main content area with file tree and diff view."""
+    from pr_reviewer.components.diff_view import diff_view
+
     return rx.cond(
         PRState.has_pr_loaded,
         rx.hstack(
@@ -112,26 +114,7 @@ def main_content() -> rx.Component:
                 flex_shrink="0",
             ),
             rx.box(
-                rx.cond(
-                    PRState.selected_file != "",
-                    rx.card(
-                        rx.vstack(
-                            rx.text(PRState.selected_file, weight="bold", size="3"),
-                            rx.text(
-                                "Diff view coming in Step 3", color="gray", size="2"
-                            ),
-                            spacing="2",
-                            align="start",
-                        ),
-                        width="100%",
-                    ),
-                    rx.box(
-                        rx.text("Select a file to view", color="gray"),
-                        padding="8",
-                        text_align="center",
-                        width="100%",
-                    ),
-                ),
+                diff_view(),
                 flex="1",
             ),
             spacing="4",
