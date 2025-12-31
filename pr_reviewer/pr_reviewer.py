@@ -23,7 +23,7 @@ def index() -> rx.Component:
                 rx.input(
                     placeholder="https://github.com/owner/repo/pull/123",
                     value=State.pr_url,
-                    on_change=State.set_pr_url,
+                    on_change=State.set_pr_url,  # pyright: ignore[reportArgumentType]
                     width="400px",
                 ),
                 rx.button("Fetch PR"),
