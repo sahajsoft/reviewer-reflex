@@ -24,6 +24,12 @@ class PRState(rx.State):
     error_message: str = ""
     selected_file: str = ""
 
+    # Review state
+    file_reviews: dict[str, str] = {}
+    current_review_file: str = ""
+    is_reviewing: bool = False
+    review_error: str = ""
+
     def set_pr_url(self, value: str) -> None:
         """Set the PR URL."""
         self.pr_url = value
@@ -93,6 +99,23 @@ class PRState(rx.State):
                 return f.get("status", "")
         return ""
 
+    @rx.var
+    def selected_file_review(self) -> str:
+        """Get the review for the currently selected file."""
+        if not self.selected_file:
+            return ""
+        return self.file_reviews.get(self.selected_file, "")
+
+    @rx.var
+    def has_selected_file_review(self) -> bool:
+        """Check if the selected file has a review."""
+        return bool(self.selected_file_review)
+
+    @rx.var
+    def is_reviewing_selected_file(self) -> bool:
+        """Check if we're currently reviewing the selected file."""
+        return self.is_reviewing and self.current_review_file == self.selected_file
+
     def select_file(self, filename: str) -> None:
         """Select a file to view."""
         self.selected_file = filename
@@ -110,6 +133,8 @@ class PRState(rx.State):
         self.total_deletions = 0
         self.files = []
         self.selected_file = ""
+        self.file_reviews = {}
+        self.review_error = ""
 
         if not self.pr_url.strip():
             self.error_message = "Please enter a PR URL"
@@ -139,3 +164,39 @@ class PRState(rx.State):
             self.error_message = str(e)
         finally:
             self.is_loading = False
+
+    async def review_file(self) -> collections.abc.AsyncGenerator[None, None]:
+        """Review the currently selected file using AI."""
+        from pr_reviewer.services.reviewer import review_diff
+
+        target_file = self.selected_file
+        if not target_file:
+            return
+
+        # Find the diff for this file
+        diff = ""
+        for f in self.files:
+            if f.get("filename") == target_file:
+                diff = f.get("patch", "")
+                break
+
+        if not diff:
+            self.review_error = "No diff available for this file"
+            return
+
+        self.review_error = ""
+        self.is_reviewing = True
+        self.current_review_file = target_file
+        self.file_reviews[target_file] = ""
+        yield
+
+        try:
+            async for chunk in review_diff(target_file, diff):
+                self.file_reviews[target_file] += chunk
+                self.file_reviews = self.file_reviews  # Trigger state update
+                yield
+        except Exception as e:
+            self.review_error = str(e)
+        finally:
+            self.is_reviewing = False
+            self.current_review_file = ""

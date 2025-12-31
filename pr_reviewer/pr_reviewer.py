@@ -102,20 +102,27 @@ def pr_metadata() -> rx.Component:
 
 
 def main_content() -> rx.Component:
-    """Main content area with file tree and diff view."""
+    """Main content area with file tree, diff view, and review panel."""
     from pr_reviewer.components.diff_view import diff_view
+    from pr_reviewer.components.review_panel import review_panel
 
     return rx.cond(
         PRState.has_pr_loaded,
         rx.hstack(
             rx.box(
                 file_tree(),
-                width="300px",
+                width="250px",
                 flex_shrink="0",
             ),
             rx.box(
                 diff_view(),
                 flex="1",
+                min_width="0",
+            ),
+            rx.box(
+                review_panel(),
+                width="350px",
+                flex_shrink="0",
             ),
             spacing="4",
             width="100%",
