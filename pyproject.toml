@@ -1,0 +1,9 @@
+[project]
+name = "reviewer-reflex"
+version = "0.1.0"
+description = "AI-powered GitHub PR reviewer built with Reflex"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "reflex>=0.8.24.post1",
+]
