@@ -253,6 +253,8 @@ class PRState(rx.State):
 
     async def review_file(self) -> collections.abc.AsyncGenerator[None, None]:
         """Review the currently selected file using AI."""
+        if self.is_reviewing:
+            return  # Already reviewing, prevent concurrent reviews
 
         target_file = self.selected_file
         if not target_file:
@@ -289,6 +291,8 @@ class PRState(rx.State):
 
     async def review_all_files(self) -> collections.abc.AsyncGenerator[None, None]:
         """Review all files with diffs using AI."""
+        if self.is_reviewing:
+            return  # Already reviewing, prevent concurrent reviews
 
         reviewable = [f for f in self.files if f.get("patch")]
         if not reviewable:
