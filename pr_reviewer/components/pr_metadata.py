@@ -9,7 +9,7 @@ from pr_reviewer.state import PRState
 def pr_description() -> rx.Component:
     """Collapsible PR description section."""
     return rx.cond(
-        PRState.has_pr_body,
+        PRState.has_pr_description,
         rx.box(
             rx.hstack(
                 rx.icon_button(
@@ -31,7 +31,7 @@ def pr_description() -> rx.Component:
             rx.cond(
                 PRState.description_expanded,
                 rx.box(
-                    rx.markdown(PRState.pr_body, size="2"),
+                    rx.markdown(PRState.pr_description, size="2"),
                     padding_left="6",
                     padding_top="2",
                 ),

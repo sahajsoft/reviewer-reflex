@@ -6,7 +6,7 @@ from pr_reviewer.models import FileStatus
 from pr_reviewer.state import PRState
 
 
-def status_icon(status: str) -> rx.Component:
+def file_status_indicator(status: str) -> rx.Component:
     """Return an icon based on file status."""
     return rx.match(  # pyright: ignore[reportReturnType]
         status,
@@ -17,7 +17,7 @@ def status_icon(status: str) -> rx.Component:
     )
 
 
-def file_item(file: dict) -> rx.Component:
+def file_list_item(file: dict) -> rx.Component:
     """Render a single file item."""
     filename = file["filename"]
     status = file["status"]
@@ -26,7 +26,7 @@ def file_item(file: dict) -> rx.Component:
 
     return rx.box(
         rx.hstack(
-            status_icon(status),
+            file_status_indicator(status),
             rx.text(
                 filename,
                 size="2",
@@ -84,7 +84,7 @@ def file_drawer_content() -> rx.Component:
         rx.divider(),
         rx.scroll_area(
             rx.vstack(
-                rx.foreach(PRState.files, file_item),
+                rx.foreach(PRState.files, file_list_item),
                 spacing="1",
                 width="100%",
             ),

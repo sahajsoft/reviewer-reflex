@@ -27,7 +27,7 @@ def parse_pr_url(url: str) -> Optional[tuple[str, str, int]]:
     return owner, repo, int(pr_num)
 
 
-def _get_headers(token: Optional[str] = None) -> dict:
+def _build_github_headers(token: Optional[str] = None) -> dict:
     """Build request headers with optional auth token.
 
     Args:
@@ -111,7 +111,7 @@ async def fetch_pr_metadata(
         Exception: On API errors with descriptive messages.
     """
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
-    headers = _get_headers(token)
+    headers = _build_github_headers(token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, timeout=30.0)
@@ -145,7 +145,7 @@ async def fetch_pr_files(
         Exception: On API errors with descriptive messages.
     """
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
-    headers = _get_headers(token)
+    headers = _build_github_headers(token)
     files: list[dict] = []
     truncated = False
 

@@ -17,7 +17,7 @@ class PRState(rx.State):
 
     pr_title: str = ""
     pr_author: str = ""
-    pr_body: str = ""
+    pr_description: str = ""
     pr_base_branch: str = ""
     pr_head_branch: str = ""
     total_additions: int = 0
@@ -56,9 +56,9 @@ class PRState(rx.State):
         return bool(self.pr_title)
 
     @rx.var
-    def has_pr_body(self) -> bool:
+    def has_pr_description(self) -> bool:
         """Check if the PR has a description."""
-        return bool(self.pr_body and self.pr_body.strip())
+        return bool(self.pr_description and self.pr_description.strip())
 
     @rx.var
     def file_count(self) -> int:
@@ -199,7 +199,7 @@ class PRState(rx.State):
         self.error_message = ""
         self.pr_title = ""
         self.pr_author = ""
-        self.pr_body = ""
+        self.pr_description = ""
         self.pr_base_branch = ""
         self.pr_head_branch = ""
         self.total_additions = 0
@@ -210,9 +210,7 @@ class PRState(rx.State):
         self.review_error = ""
         self.description_expanded = False
 
-    async def fetch_pr(
-        self, form_data: dict[str, Any] | None = None
-    ) -> collections.abc.AsyncGenerator[None, None]:
+    async def fetch_pr(self) -> collections.abc.AsyncGenerator[None, None]:
         """Fetch PR data from GitHub."""
         self._reset_pr_state()
 
@@ -234,7 +232,7 @@ class PRState(rx.State):
             metadata = await fetch_pr_metadata(owner, repo, pr_number, token=token)
             self.pr_title = metadata.get("title", "")
             self.pr_author = metadata.get("user", {}).get("login", "")
-            self.pr_body = metadata.get("body", "") or ""
+            self.pr_description = metadata.get("body", "") or ""
             self.pr_base_branch = metadata.get("base", {}).get("ref", "")
             self.pr_head_branch = metadata.get("head", {}).get("ref", "")
             self.total_additions = metadata.get("additions", 0)
