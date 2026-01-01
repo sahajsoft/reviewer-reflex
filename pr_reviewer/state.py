@@ -65,25 +65,27 @@ class PRState(rx.State):
         """Get the number of files changed."""
         return len(self.files)
 
+    def _find_file_by_name(self, filename: str) -> dict[str, Any] | None:
+        """Find file data by filename."""
+        for f in self.files:
+            if f.get("filename") == filename:
+                return f
+        return None
+
     @rx.var
     def selected_file_data(self) -> dict[str, Any] | None:
         """Get the data for the currently selected file."""
         if not self.selected_file:
             return None
-        for f in self.files:
-            if f.get("filename") == self.selected_file:
-                return f
-        return None
+        return self._find_file_by_name(self.selected_file)
 
     @rx.var
     def selected_file_diff(self) -> str:
         """Get the diff patch for the currently selected file."""
         if not self.selected_file:
             return ""
-        for f in self.files:
-            if f.get("filename") == self.selected_file:
-                return f.get("patch", "")
-        return ""
+        file_data = self._find_file_by_name(self.selected_file)
+        return file_data.get("patch", "") if file_data else ""
 
     @rx.var
     def selected_file_has_diff(self) -> bool:
@@ -95,30 +97,24 @@ class PRState(rx.State):
         """Get additions count for the selected file."""
         if not self.selected_file:
             return 0
-        for f in self.files:
-            if f.get("filename") == self.selected_file:
-                return f.get("additions", 0)
-        return 0
+        file_data = self._find_file_by_name(self.selected_file)
+        return file_data.get("additions", 0) if file_data else 0
 
     @rx.var
     def selected_file_deletions(self) -> int:
         """Get deletions count for the selected file."""
         if not self.selected_file:
             return 0
-        for f in self.files:
-            if f.get("filename") == self.selected_file:
-                return f.get("deletions", 0)
-        return 0
+        file_data = self._find_file_by_name(self.selected_file)
+        return file_data.get("deletions", 0) if file_data else 0
 
     @rx.var
     def selected_file_status(self) -> str:
         """Get status for the selected file."""
         if not self.selected_file:
             return ""
-        for f in self.files:
-            if f.get("filename") == self.selected_file:
-                return f.get("status", "")
-        return ""
+        file_data = self._find_file_by_name(self.selected_file)
+        return file_data.get("status", "") if file_data else ""
 
     @rx.var
     def selected_file_review(self) -> str:
