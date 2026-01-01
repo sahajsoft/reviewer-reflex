@@ -53,8 +53,47 @@ def error_display() -> rx.Component:
     )
 
 
+def pr_description() -> rx.Component:
+    """Collapsible PR description section."""
+    return rx.cond(
+        PRState.has_pr_body,
+        rx.box(
+            rx.hstack(
+                rx.icon_button(
+                    rx.cond(
+                        PRState.description_expanded,
+                        rx.icon("chevron-down", size=16),
+                        rx.icon("chevron-right", size=16),
+                    ),
+                    variant="ghost",
+                    size="1",
+                    on_click=PRState.toggle_description,  # pyright: ignore[reportArgumentType]
+                ),
+                rx.text("Description", size="2", weight="medium", color="gray"),
+                spacing="1",
+                align="center",
+                cursor="pointer",
+                on_click=PRState.toggle_description,  # pyright: ignore[reportArgumentType]
+            ),
+            rx.cond(
+                PRState.description_expanded,
+                rx.box(
+                    rx.markdown(PRState.pr_body, size="2"),
+                    padding_left="6",
+                    padding_top="2",
+                ),
+                rx.fragment(),
+            ),
+            width="100%",
+        ),
+        rx.fragment(),
+    )
+
+
 def pr_metadata() -> rx.Component:
     """Display PR metadata when loaded."""
+    from pr_reviewer.components.file_tree import file_drawer_trigger
+
     return rx.cond(
         PRState.has_pr_loaded,
         rx.card(
@@ -71,8 +110,10 @@ def pr_metadata() -> rx.Component:
                     spacing="2",
                     align="center",
                 ),
+                pr_description(),
                 rx.divider(),
                 rx.hstack(
+                    file_drawer_trigger(),
                     rx.hstack(
                         rx.text("+", color="green", weight="bold"),
                         rx.text(PRState.total_additions, color="green"),
@@ -102,31 +143,36 @@ def pr_metadata() -> rx.Component:
 
 
 def main_content() -> rx.Component:
-    """Main content area with file tree, diff view, and review panel."""
+    """Main content area with diff view and review panel."""
     from pr_reviewer.components.diff_view import diff_view
     from pr_reviewer.components.review_panel import review_panel
 
     return rx.cond(
         PRState.has_pr_loaded,
-        rx.hstack(
-            rx.box(
-                file_tree(),
-                width="250px",
-                flex_shrink="0",
-            ),
-            rx.box(
-                diff_view(),
+        rx.fragment(
+            file_tree(),  # Drawer - renders as overlay
+            rx.hstack(
+                rx.box(
+                    diff_view(),
+                    flex="1",
+                    min_width="0",
+                    overflow="hidden",
+                    height="100%",
+                ),
+                rx.box(
+                    review_panel(),
+                    width="40%",
+                    min_width="400px",
+                    flex_shrink="0",
+                    height="100%",
+                    overflow="hidden",
+                ),
+                spacing="4",
+                width="100%",
+                align="stretch",
                 flex="1",
-                min_width="0",
+                min_height="0",
             ),
-            rx.box(
-                review_panel(),
-                width="350px",
-                flex_shrink="0",
-            ),
-            spacing="4",
-            width="100%",
-            align="start",
         ),
         rx.fragment(),
     )
@@ -137,7 +183,7 @@ def index() -> rx.Component:
     from pr_reviewer.components.header import header
     from pr_reviewer.components.settings import settings_panel
 
-    return rx.container(
+    return rx.box(
         rx.vstack(
             header(),
             settings_panel(),
@@ -145,13 +191,18 @@ def index() -> rx.Component:
             error_display(),
             pr_metadata(),
             main_content(),
-            spacing="5",
+            spacing="4",
             justify="start",
-            padding_top="4",
-            min_height="85vh",
             width="100%",
+            flex="1",
+            min_height="0",
         ),
-        size="4",
+        width="100%",
+        height="100vh",
+        overflow="hidden",
+        display="flex",
+        flex_direction="column",
+        padding="2rem",
     )
 
 

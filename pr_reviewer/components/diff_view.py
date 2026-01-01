@@ -59,10 +59,12 @@ def diff_content() -> rx.Component:
                 language="diff",
                 show_line_numbers=True,
                 wrap_long_lines=True,
+                font_size="13px",
             ),
             type="auto",
             scrollbars="both",
-            style={"max_height": "60vh"},
+            flex="1",
+            min_height="0",
         ),
         rx.box(
             rx.vstack(
@@ -79,6 +81,7 @@ def diff_content() -> rx.Component:
             padding="8",
             text_align="center",
             width="100%",
+            flex="1",
         ),
     )
 
@@ -95,11 +98,16 @@ def diff_view() -> rx.Component:
                 spacing="2",
                 align="start",
                 width="100%",
+                height="100%",
+                flex="1",
             ),
             padding="3",
             border_radius="lg",
             border=f"1px solid {rx.color('gray', 5)}",
             width="100%",
+            height="100%",
+            display="flex",
+            flex_direction="column",
         ),
         rx.box(
             rx.vstack(
@@ -111,7 +119,7 @@ def diff_view() -> rx.Component:
             padding="8",
             text_align="center",
             width="100%",
-            height="200px",
+            height="100%",
             display="flex",
             align_items="center",
             justify_content="center",

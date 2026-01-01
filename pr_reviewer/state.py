@@ -17,6 +17,7 @@ class PRState(rx.State):
 
     pr_title: str = ""
     pr_author: str = ""
+    pr_body: str = ""
     pr_base_branch: str = ""
     pr_head_branch: str = ""
     total_additions: int = 0
@@ -37,6 +38,10 @@ class PRState(rx.State):
     github_token: str = ""
     model: str = DEFAULT_MODEL
 
+    # UI state
+    file_drawer_open: bool = False
+    description_expanded: bool = False
+
     # Review all state
     is_reviewing_all: bool = False
     review_all_current_index: int = 0
@@ -49,6 +54,11 @@ class PRState(rx.State):
     def has_pr_loaded(self) -> bool:
         """Check if a PR has been loaded."""
         return bool(self.pr_title)
+
+    @rx.var
+    def has_pr_body(self) -> bool:
+        """Check if the PR has a description."""
+        return bool(self.pr_body and self.pr_body.strip())
 
     @rx.var
     def file_count(self) -> int:
@@ -164,6 +174,22 @@ class PRState(rx.State):
         """Toggle the settings panel."""
         self.settings_open = not self.settings_open
 
+    def toggle_description(self) -> None:
+        """Toggle the description expanded state."""
+        self.description_expanded = not self.description_expanded
+
+    def toggle_file_drawer(self) -> None:
+        """Toggle the file drawer."""
+        self.file_drawer_open = not self.file_drawer_open
+
+    def close_file_drawer(self) -> None:
+        """Close the file drawer."""
+        self.file_drawer_open = False
+
+    def set_file_drawer_open(self, value: bool) -> None:
+        """Set the file drawer open state."""
+        self.file_drawer_open = value
+
     def set_model(self, value: str) -> None:
         """Set the AI model."""
         self.model = value
@@ -179,6 +205,7 @@ class PRState(rx.State):
         self.error_message = ""
         self.pr_title = ""
         self.pr_author = ""
+        self.pr_body = ""
         self.pr_base_branch = ""
         self.pr_head_branch = ""
         self.total_additions = 0
@@ -187,6 +214,7 @@ class PRState(rx.State):
         self.selected_file = ""
         self.file_reviews = {}
         self.review_error = ""
+        self.description_expanded = False
 
         if not self.pr_url.strip():
             self.error_message = "Please enter a PR URL"
@@ -206,6 +234,7 @@ class PRState(rx.State):
             metadata = await fetch_pr_metadata(owner, repo, pr_number, token=token)
             self.pr_title = metadata.get("title", "")
             self.pr_author = metadata.get("user", {}).get("login", "")
+            self.pr_body = metadata.get("body", "") or ""
             self.pr_base_branch = metadata.get("base", {}).get("ref", "")
             self.pr_head_branch = metadata.get("head", {}).get("ref", "")
             self.total_additions = metadata.get("additions", 0)

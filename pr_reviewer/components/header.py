@@ -62,7 +62,7 @@ def review_all_button() -> rx.Component:
                             PRState.reviewed_file_count > 0,
                             rx.badge(
                                 PRState.review_progress_text,
-                                color="gray",
+                                color="blue",
                                 variant="soft",
                             ),
                             rx.fragment(),

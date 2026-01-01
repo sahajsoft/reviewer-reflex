@@ -37,12 +37,42 @@ def review_content() -> rx.Component:
         PRState.has_selected_file_review,
         rx.scroll_area(
             rx.box(
-                rx.markdown(PRState.selected_file_review),
-                padding="3",
+                rx.markdown(
+                    PRState.selected_file_review,
+                    component_map={
+                        "code": lambda text: rx.code(
+                            text,
+                            style={
+                                "white_space": "pre-wrap",
+                                "word_break": "break-all",
+                                "font_size": "12px",
+                            },
+                        ),
+                    },
+                ),
+                padding="4",
+                width="100%",
+                font_size="14px",
+                style={
+                    "word_wrap": "break-word",
+                    "overflow_wrap": "break-word",
+                    "& pre": {
+                        "white_space": "pre-wrap",
+                        "word_break": "break-all",
+                        "font_size": "12px",
+                    },
+                    "& code": {
+                        "white_space": "pre-wrap",
+                        "word_break": "break-all",
+                        "font_size": "12px",
+                    },
+                },
             ),
             type="auto",
-            scrollbars="vertical",
-            style={"max_height": "50vh"},
+            scrollbars="both",
+            flex="1",
+            min_height="0",
+            width="100%",
         ),
         rx.cond(
             PRState.is_reviewing_selected_file,
@@ -56,6 +86,7 @@ def review_content() -> rx.Component:
                 padding="6",
                 text_align="center",
                 width="100%",
+                flex="1",
             ),
             rx.box(
                 rx.vstack(
@@ -72,6 +103,7 @@ def review_content() -> rx.Component:
                 padding="6",
                 text_align="center",
                 width="100%",
+                flex="1",
             ),
         ),
     )
@@ -100,8 +132,11 @@ def review_panel() -> rx.Component:
                 rx.hstack(
                     rx.icon("bot", size=18),
                     rx.text("AI Review", weight="bold", size="3"),
+                    rx.spacer(),
+                    rx.badge(PRState.model, color_scheme="gray", size="1"),
                     spacing="2",
                     align="center",
+                    width="100%",
                 ),
                 rx.divider(),
                 review_button(),
@@ -110,11 +145,19 @@ def review_panel() -> rx.Component:
                 spacing="3",
                 align="start",
                 width="100%",
+                height="100%",
+                flex="1",
+                min_width="0",
+                overflow="hidden",
             ),
             padding="3",
             border_radius="lg",
             border=f"1px solid {rx.color('gray', 5)}",
             width="100%",
+            height="100%",
+            display="flex",
+            flex_direction="column",
+            overflow="hidden",
         ),
         rx.fragment(),
     )
