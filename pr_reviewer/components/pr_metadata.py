@@ -43,6 +43,19 @@ def pr_description() -> rx.Component:
     )
 
 
+def truncation_warning() -> rx.Component:
+    """Warning displayed when PR has more files than can be shown."""
+    return rx.cond(
+        PRState.files_truncated,
+        rx.callout(
+            "This PR has more than 100 files. Only the first 100 are shown.",
+            icon="triangle-alert",
+            color="orange",
+        ),
+        rx.fragment(),
+    )
+
+
 def pr_metadata() -> rx.Component:
     """Display PR metadata when loaded."""
 
@@ -50,6 +63,7 @@ def pr_metadata() -> rx.Component:
         PRState.has_pr_loaded,
         rx.card(
             rx.vstack(
+                truncation_warning(),
                 rx.heading(PRState.pr_title, size="5"),
                 rx.hstack(
                     rx.badge(PRState.pr_author, color="blue"),

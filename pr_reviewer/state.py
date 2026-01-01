@@ -23,6 +23,7 @@ class PRState(rx.State):
     total_additions: int = 0
     total_deletions: int = 0
     files: list[dict[str, Any]] = []
+    files_truncated: bool = False
     is_loading: bool = False
     error_message: str = ""
     selected_file: str = ""
@@ -211,6 +212,7 @@ class PRState(rx.State):
         self.total_additions = 0
         self.total_deletions = 0
         self.files = []
+        self.files_truncated = False
         self.selected_file = ""
         self.file_reviews = {}
         self.review_error = ""
@@ -246,6 +248,7 @@ class PRState(rx.State):
 
             files_data = await fetch_pr_files(owner, repo, pr_number, token=token)
             self.files = files_data.get("files", [])
+            self.files_truncated = files_data.get("truncated", False)
         except Exception as e:
             self.error_message = str(e)
         finally:
