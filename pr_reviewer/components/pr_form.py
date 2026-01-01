@@ -5,7 +5,7 @@ import reflex as rx
 from pr_reviewer.state import PRState
 
 
-def pr_input() -> rx.Component:
+def pr_url_input() -> rx.Component:
     """Input section for PR URL."""
     return rx.form(
         rx.hstack(
@@ -37,8 +37,8 @@ def pr_input() -> rx.Component:
     )
 
 
-def error_display() -> rx.Component:
-    """Display error messages."""
+def error_callout() -> rx.Component:
+    """Display error messages as a callout."""
     return rx.cond(
         PRState.error_message != "",
         rx.callout(

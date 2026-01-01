@@ -4,11 +4,11 @@ import reflex as rx
 
 from pr_reviewer.components import (
     diff_view,
-    error_display,
+    error_callout,
     file_drawer,
     header,
-    pr_input,
     pr_metadata,
+    pr_url_input,
     review_panel,
     settings_panel,
 )
@@ -56,8 +56,8 @@ def index() -> rx.Component:
         rx.vstack(
             header(),
             settings_panel(),
-            pr_input(),
-            error_display(),
+            pr_url_input(),
+            error_callout(),
             pr_metadata(),
             main_content(),
             spacing="4",
