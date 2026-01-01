@@ -6,6 +6,7 @@ from typing import Any
 import reflex as rx
 
 from pr_reviewer.services.github import fetch_pr_files, fetch_pr_metadata, parse_pr_url
+from pr_reviewer.services.reviewer import review_diff
 
 DEFAULT_MODEL = "claude-sonnet-4-5"
 
@@ -249,7 +250,6 @@ class PRState(rx.State):
 
     async def review_file(self) -> collections.abc.AsyncGenerator[None, None]:
         """Review the currently selected file using AI."""
-        from pr_reviewer.services.reviewer import review_diff
 
         target_file = self.selected_file
         if not target_file:
@@ -285,7 +285,6 @@ class PRState(rx.State):
 
     async def review_all_files(self) -> collections.abc.AsyncGenerator[None, None]:
         """Review all files with diffs using AI."""
-        from pr_reviewer.services.reviewer import review_diff
 
         reviewable = [f for f in self.files if f.get("patch")]
         if not reviewable:

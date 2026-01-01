@@ -2,7 +2,11 @@
 
 import reflex as rx
 
-from pr_reviewer.components.file_tree import file_tree
+from pr_reviewer.components.diff_view import diff_view
+from pr_reviewer.components.file_tree import file_drawer_trigger, file_tree
+from pr_reviewer.components.header import header
+from pr_reviewer.components.review_panel import review_panel
+from pr_reviewer.components.settings import settings_panel
 from pr_reviewer.state import PRState
 
 
@@ -92,7 +96,6 @@ def pr_description() -> rx.Component:
 
 def pr_metadata() -> rx.Component:
     """Display PR metadata when loaded."""
-    from pr_reviewer.components.file_tree import file_drawer_trigger
 
     return rx.cond(
         PRState.has_pr_loaded,
@@ -144,8 +147,6 @@ def pr_metadata() -> rx.Component:
 
 def main_content() -> rx.Component:
     """Main content area with diff view and review panel."""
-    from pr_reviewer.components.diff_view import diff_view
-    from pr_reviewer.components.review_panel import review_panel
 
     return rx.cond(
         PRState.has_pr_loaded,
@@ -180,8 +181,6 @@ def main_content() -> rx.Component:
 
 def index() -> rx.Component:
     """Main page."""
-    from pr_reviewer.components.header import header
-    from pr_reviewer.components.settings import settings_panel
 
     return rx.box(
         rx.vstack(

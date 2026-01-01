@@ -60,7 +60,7 @@ def file_item(file: dict) -> rx.Component:
         ),
         on_click=[
             lambda: PRState.select_file(filename),  # pyright: ignore[reportCallIssue]
-            PRState.close_file_drawer,
+            PRState.close_file_drawer,  # pyright: ignore[reportArgumentType]
         ],
     )
 
@@ -75,7 +75,7 @@ def file_tree_content() -> rx.Component:
                 rx.icon("x", size=18),
                 variant="ghost",
                 size="1",
-                on_click=PRState.toggle_file_drawer,
+                on_click=PRState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
             ),
             width="100%",
             align="center",
@@ -127,7 +127,7 @@ def file_drawer_trigger() -> rx.Component:
             rx.badge(PRState.file_count, variant="soft"),
             variant="outline",
             size="2",
-            on_click=PRState.toggle_file_drawer,
+            on_click=PRState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
         ),
         rx.fragment(),
     )
