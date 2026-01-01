@@ -72,6 +72,12 @@ class PRState(rx.State):
                 return f
         return None
 
+    def _update_file_review(self, filename: str, content: str) -> None:
+        """Update a file review, triggering proper state reactivity."""
+        updated = dict(self.file_reviews)
+        updated[filename] = content
+        self.file_reviews = updated
+
     @rx.var
     def selected_file_data(self) -> dict[str, Any] | None:
         """Get the data for the currently selected file."""
@@ -271,8 +277,9 @@ class PRState(rx.State):
 
         try:
             async for chunk in review_diff(target_file, diff, model=self.model):
-                self.file_reviews[target_file] += chunk
-                self.file_reviews = self.file_reviews  # Trigger state update
+                self._update_file_review(
+                    target_file, self.file_reviews.get(target_file, "") + chunk
+                )
                 yield
         except Exception as e:
             self.review_error = str(e)
@@ -311,8 +318,9 @@ class PRState(rx.State):
 
                 try:
                     async for chunk in review_diff(filename, diff, model=self.model):
-                        self.file_reviews[filename] += chunk
-                        self.file_reviews = self.file_reviews  # Trigger state update
+                        self._update_file_review(
+                            filename, self.file_reviews.get(filename, "") + chunk
+                        )
                         yield
                 except Exception as e:
                     self.file_reviews[filename] = f"Error: {e}"
