@@ -46,6 +46,61 @@ def settings_panel() -> rx.Component:
                         size="1",
                         color="gray",
                     ),
+                    rx.accordion.root(
+                        rx.accordion.item(
+                            header="How to get a GitHub token",
+                            content=rx.vstack(
+                                rx.ordered_list(
+                                    rx.list_item(
+                                        rx.text.span("Go to "),
+                                        rx.link(
+                                            "GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens",
+                                            href="https://github.com/settings/tokens?type=beta",
+                                            is_external=True,
+                                        ),
+                                    ),
+                                    rx.list_item('Click "Generate new token"'),
+                                    rx.list_item(
+                                        rx.text.span("Configure: "),
+                                        rx.unordered_list(
+                                            rx.list_item(
+                                                rx.text.span("Name: ", weight="medium"),
+                                                "PR Reviewer App",
+                                            ),
+                                            rx.list_item(
+                                                rx.text.span(
+                                                    "Repository access: ",
+                                                    weight="medium",
+                                                ),
+                                                "Select repos you want to review",
+                                            ),
+                                            rx.list_item(
+                                                rx.text.span(
+                                                    "Permissions: ", weight="medium"
+                                                ),
+                                                "Contents (Read) and Pull requests (Read)",
+                                            ),
+                                        ),
+                                    ),
+                                    rx.list_item('Click "Generate token" and copy it'),
+                                    spacing="2",
+                                ),
+                                rx.callout(
+                                    "For classic tokens, use the 'repo' scope instead.",
+                                    icon="info",
+                                    size="1",
+                                ),
+                                spacing="3",
+                                align="start",
+                                width="100%",
+                                padding_y="2",
+                            ),
+                            value="token_help",
+                        ),
+                        collapsible=True,
+                        variant="ghost",
+                        width="100%",
+                    ),
                     spacing="1",
                     align="start",
                     width="100%",
