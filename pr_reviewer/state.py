@@ -5,10 +5,9 @@ from typing import Any
 
 import reflex as rx
 
+from pr_reviewer.models import DEFAULT_MODEL
 from pr_reviewer.services.github import fetch_pr_files, fetch_pr_metadata, parse_pr_url
 from pr_reviewer.services.reviewer import review_diff
-
-DEFAULT_MODEL = "claude-sonnet-4-5"
 
 
 class PRState(rx.State):

@@ -5,6 +5,8 @@ from collections.abc import AsyncGenerator
 
 import anthropic
 
+from pr_reviewer.models import DEFAULT_MODEL
+
 SYSTEM_PROMPT = """You are an expert code reviewer. Analyze the provided diff and give a concise, actionable review.
 
 Focus on:
@@ -25,8 +27,6 @@ List any problems found (or "None found" if clean).
 Optional improvements (keep brief).
 
 Be direct and specific. Reference line numbers from the diff when relevant."""
-
-DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
 
 async def review_diff(

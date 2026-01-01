@@ -2,13 +2,8 @@
 
 import reflex as rx
 
-from pr_reviewer.state import DEFAULT_MODEL, PRState
-
-AVAILABLE_MODELS = [
-    ("claude-opus-4-5", "Claude Opus 4.5"),
-    ("claude-sonnet-4-5", "Claude Sonnet 4.5"),
-    ("claude-haiku-4-5", "Claude Haiku 4.5"),
-]
+from pr_reviewer.models import AVAILABLE_MODELS, DEFAULT_MODEL
+from pr_reviewer.state import PRState
 
 
 def settings_panel() -> rx.Component:
