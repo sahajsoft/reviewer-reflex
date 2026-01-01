@@ -28,7 +28,16 @@ def settings_panel() -> rx.Component:
                 ),
                 rx.divider(),
                 rx.vstack(
-                    rx.text("GitHub Token", size="2", weight="medium"),
+                    rx.hstack(
+                        rx.text("GitHub Token", size="2", weight="medium"),
+                        rx.cond(
+                            PRState.has_github_token,
+                            rx.badge("Set", color="green", size="1"),
+                            rx.badge("Not set", color="gray", size="1"),
+                        ),
+                        spacing="2",
+                        align="center",
+                    ),
                     rx.input(
                         placeholder="ghp_xxxx (optional, for private repos)",
                         value=PRState.github_token,

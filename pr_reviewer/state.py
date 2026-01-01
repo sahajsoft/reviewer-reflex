@@ -57,6 +57,11 @@ class PRState(rx.State):
         return bool(self.pr_title)
 
     @rx.var
+    def has_github_token(self) -> bool:
+        """Check if a GitHub token is configured."""
+        return bool(self.github_token)
+
+    @rx.var
     def has_pr_description(self) -> bool:
         """Check if the PR has a description."""
         return bool(self.pr_description and self.pr_description.strip())
