@@ -143,7 +143,7 @@ class PRState(rx.State):
     @rx.var
     def reviewable_files(self) -> list[dict[str, Any]]:
         """Get files that have diffs and can be reviewed."""
-        return [f for f in self.files if f.get("patch")]
+        return [f for f in self.files if f.get("patch", "").strip()]
 
     @rx.var
     def reviewable_file_count(self) -> int:
@@ -153,7 +153,9 @@ class PRState(rx.State):
     @rx.var
     def reviewed_file_count(self) -> int:
         """Get the count of files that have been reviewed."""
-        reviewable = [f.get("filename") for f in self.files if f.get("patch")]
+        reviewable = [
+            f.get("filename") for f in self.files if f.get("patch", "").strip()
+        ]
         return len([f for f in reviewable if f in self.file_reviews])
 
     @rx.var
@@ -297,7 +299,7 @@ class PRState(rx.State):
         if self.is_reviewing:
             return  # Already reviewing, prevent concurrent reviews
 
-        reviewable = [f for f in self.files if f.get("patch")]
+        reviewable = [f for f in self.files if f.get("patch", "").strip()]
         if not reviewable:
             return
 
