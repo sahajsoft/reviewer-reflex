@@ -7,6 +7,8 @@ import reflex as rx
 
 from pr_reviewer.services.github import fetch_pr_files, fetch_pr_metadata, parse_pr_url
 
+DEFAULT_MODEL = "claude-sonnet-4-5"
+
 
 class PRState(rx.State):
     """State for the PR Reviewer application."""
@@ -29,6 +31,15 @@ class PRState(rx.State):
     current_review_file: str = ""
     is_reviewing: bool = False
     review_error: str = ""
+
+    # Settings state
+    settings_open: bool = False
+    github_token: str = ""
+    model: str = DEFAULT_MODEL
+
+    # Review all state
+    is_reviewing_all: bool = False
+    review_all_current_index: int = 0
 
     def set_pr_url(self, value: str) -> None:
         """Set the PR URL."""
@@ -116,9 +127,50 @@ class PRState(rx.State):
         """Check if we're currently reviewing the selected file."""
         return self.is_reviewing and self.current_review_file == self.selected_file
 
+    @rx.var
+    def reviewable_files(self) -> list[dict[str, Any]]:
+        """Get files that have diffs and can be reviewed."""
+        return [f for f in self.files if f.get("patch")]
+
+    @rx.var
+    def reviewable_file_count(self) -> int:
+        """Get the count of reviewable files."""
+        return len(self.reviewable_files)
+
+    @rx.var
+    def reviewed_file_count(self) -> int:
+        """Get the count of files that have been reviewed."""
+        reviewable = [f.get("filename") for f in self.files if f.get("patch")]
+        return len([f for f in reviewable if f in self.file_reviews])
+
+    @rx.var
+    def review_progress_text(self) -> str:
+        """Get progress text for review all."""
+        return f"{self.reviewed_file_count}/{self.reviewable_file_count}"
+
+    @rx.var
+    def all_files_reviewed(self) -> bool:
+        """Check if all reviewable files have been reviewed."""
+        return (
+            self.reviewed_file_count == self.reviewable_file_count
+            and self.reviewable_file_count > 0
+        )
+
     def select_file(self, filename: str) -> None:
         """Select a file to view."""
         self.selected_file = filename
+
+    def toggle_settings(self) -> None:
+        """Toggle the settings panel."""
+        self.settings_open = not self.settings_open
+
+    def set_model(self, value: str) -> None:
+        """Set the AI model."""
+        self.model = value
+
+    def set_github_token(self, value: str) -> None:
+        """Set the GitHub token."""
+        self.github_token = value
 
     async def fetch_pr(
         self, form_data: dict[str, Any] | None = None
@@ -150,7 +202,8 @@ class PRState(rx.State):
         yield
 
         try:
-            metadata = await fetch_pr_metadata(owner, repo, pr_number)
+            token = self.github_token or None
+            metadata = await fetch_pr_metadata(owner, repo, pr_number, token=token)
             self.pr_title = metadata.get("title", "")
             self.pr_author = metadata.get("user", {}).get("login", "")
             self.pr_base_branch = metadata.get("base", {}).get("ref", "")
@@ -158,7 +211,7 @@ class PRState(rx.State):
             self.total_additions = metadata.get("additions", 0)
             self.total_deletions = metadata.get("deletions", 0)
 
-            files_data = await fetch_pr_files(owner, repo, pr_number)
+            files_data = await fetch_pr_files(owner, repo, pr_number, token=token)
             self.files = files_data.get("files", [])
         except Exception as e:
             self.error_message = str(e)
@@ -191,12 +244,55 @@ class PRState(rx.State):
         yield
 
         try:
-            async for chunk in review_diff(target_file, diff):
+            async for chunk in review_diff(target_file, diff, model=self.model):
                 self.file_reviews[target_file] += chunk
                 self.file_reviews = self.file_reviews  # Trigger state update
                 yield
         except Exception as e:
             self.review_error = str(e)
         finally:
+            self.is_reviewing = False
+            self.current_review_file = ""
+
+    async def review_all_files(self) -> collections.abc.AsyncGenerator[None, None]:
+        """Review all files with diffs using AI."""
+        from pr_reviewer.services.reviewer import review_diff
+
+        reviewable = [f for f in self.files if f.get("patch")]
+        if not reviewable:
+            return
+
+        self.review_error = ""
+        self.is_reviewing_all = True
+        self.is_reviewing = True
+        yield
+
+        try:
+            for idx, file_data in enumerate(reviewable):
+                filename = file_data.get("filename", "")
+                diff = file_data.get("patch", "")
+
+                if not filename or not diff:
+                    continue
+
+                # Skip already reviewed files
+                if filename in self.file_reviews:
+                    continue
+
+                self.review_all_current_index = idx
+                self.current_review_file = filename
+                self.file_reviews[filename] = ""
+                yield
+
+                try:
+                    async for chunk in review_diff(filename, diff, model=self.model):
+                        self.file_reviews[filename] += chunk
+                        self.file_reviews = self.file_reviews  # Trigger state update
+                        yield
+                except Exception as e:
+                    self.file_reviews[filename] = f"Error: {e}"
+                    yield
+        finally:
+            self.is_reviewing_all = False
             self.is_reviewing = False
             self.current_review_file = ""

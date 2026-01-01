@@ -134,11 +134,13 @@ def main_content() -> rx.Component:
 
 def index() -> rx.Component:
     """Main page."""
+    from pr_reviewer.components.header import header
+    from pr_reviewer.components.settings import settings_panel
+
     return rx.container(
-        rx.color_mode.button(position="top-right"),
         rx.vstack(
-            rx.heading("PR Reviewer", size="9"),
-            rx.text("AI-powered GitHub PR code review", size="5", color="gray"),
+            header(),
+            settings_panel(),
             pr_input(),
             error_display(),
             pr_metadata(),
