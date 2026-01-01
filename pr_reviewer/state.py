@@ -194,10 +194,8 @@ class PRState(rx.State):
         """Set the GitHub token."""
         self.github_token = value
 
-    async def fetch_pr(
-        self, form_data: dict[str, Any] | None = None
-    ) -> collections.abc.AsyncGenerator[None, None]:
-        """Fetch PR data from GitHub."""
+    def _reset_pr_state(self) -> None:
+        """Reset all PR-related state."""
         self.error_message = ""
         self.pr_title = ""
         self.pr_author = ""
@@ -211,6 +209,12 @@ class PRState(rx.State):
         self.file_reviews = {}
         self.review_error = ""
         self.description_expanded = False
+
+    async def fetch_pr(
+        self, form_data: dict[str, Any] | None = None
+    ) -> collections.abc.AsyncGenerator[None, None]:
+        """Fetch PR data from GitHub."""
+        self._reset_pr_state()
 
         if not self.pr_url.strip():
             self.error_message = "Please enter a PR URL"
