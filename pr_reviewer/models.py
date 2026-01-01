@@ -11,9 +11,9 @@ class FileStatus:
 
 
 MODELS = {
-    "opus": ("claude-opus-4-5-20250929", "Claude Opus 4.5"),
+    "opus": ("claude-opus-4-5-20251101", "Claude Opus 4.5"),
     "sonnet": ("claude-sonnet-4-5-20250929", "Claude Sonnet 4.5"),
-    "haiku": ("claude-haiku-4-5-20250929", "Claude Haiku 4.5"),
+    "haiku": ("claude-haiku-4-5-20251001", "Claude Haiku 4.5"),
 }
 DEFAULT_MODEL_KEY = "sonnet"
 DEFAULT_MODEL = MODELS[DEFAULT_MODEL_KEY][0]
