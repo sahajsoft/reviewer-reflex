@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from pr_reviewer.models import FileStatus
 from pr_reviewer.state import PRState
 
 
@@ -33,9 +34,9 @@ def diff_header() -> rx.Component:
                 PRState.selected_file_status,
                 color=rx.match(
                     PRState.selected_file_status,
-                    ("added", "green"),
-                    ("removed", "red"),
-                    ("renamed", "orange"),
+                    (FileStatus.ADDED, "green"),
+                    (FileStatus.REMOVED, "red"),
+                    (FileStatus.RENAMED, "orange"),
                     "blue",
                 ),
                 size="1",

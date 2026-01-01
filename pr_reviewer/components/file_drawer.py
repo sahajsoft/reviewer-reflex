@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from pr_reviewer.models import FileStatus
 from pr_reviewer.state import PRState
 
 
@@ -9,9 +10,9 @@ def status_icon(status: str) -> rx.Component:
     """Return an icon based on file status."""
     return rx.match(  # pyright: ignore[reportReturnType]
         status,
-        ("added", rx.text("+", color="green", weight="bold", size="2")),
-        ("removed", rx.text("-", color="red", weight="bold", size="2")),
-        ("renamed", rx.text("R", color="orange", weight="bold", size="2")),
+        (FileStatus.ADDED, rx.text("+", color="green", weight="bold", size="2")),
+        (FileStatus.REMOVED, rx.text("-", color="red", weight="bold", size="2")),
+        (FileStatus.RENAMED, rx.text("R", color="orange", weight="bold", size="2")),
         rx.text("M", color="blue", weight="bold", size="2"),  # default: modified
     )
 

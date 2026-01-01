@@ -1,5 +1,15 @@
 """Model definitions for PR Reviewer - single source of truth."""
 
+
+class FileStatus:
+    """Constants for file status values."""
+
+    ADDED = "added"
+    REMOVED = "removed"
+    RENAMED = "renamed"
+    MODIFIED = "modified"
+
+
 MODELS = {
     "opus": ("claude-opus-4-5-20250929", "Claude Opus 4.5"),
     "sonnet": ("claude-sonnet-4-5-20250929", "Claude Sonnet 4.5"),
