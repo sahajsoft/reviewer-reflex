@@ -71,6 +71,25 @@ def _parse_link_header(link_header: str) -> Optional[str]:
     return None
 
 
+def _handle_github_error(
+    response: httpx.Response, owner: str, repo: str, pr_number: int
+) -> None:
+    """Raise appropriate exception for GitHub API errors."""
+    if response.status_code == 404:
+        raise Exception(
+            f"PR not found: {owner}/{repo}#{pr_number}. "
+            "The repository may be private or the PR doesn't exist."
+        )
+    if response.status_code == 403:
+        remaining = response.headers.get("X-RateLimit-Remaining", "unknown")
+        raise Exception(
+            f"GitHub API rate limit exceeded. "
+            f"Remaining requests: {remaining}. "
+            "Add a GitHub token in settings to increase your rate limit."
+        )
+    response.raise_for_status()
+
+
 async def fetch_pr_metadata(
     owner: str,
     repo: str,
@@ -96,22 +115,7 @@ async def fetch_pr_metadata(
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, timeout=30.0)
-
-        if response.status_code == 404:
-            raise Exception(
-                f"PR not found: {owner}/{repo}#{pr_number}. "
-                "The repository may be private or the PR doesn't exist."
-            )
-
-        if response.status_code == 403:
-            remaining = response.headers.get("X-RateLimit-Remaining", "unknown")
-            raise Exception(
-                f"GitHub API rate limit exceeded. "
-                f"Remaining requests: {remaining}. "
-                "Add a GitHub token in settings to increase your rate limit."
-            )
-
-        response.raise_for_status()
+        _handle_github_error(response, owner, repo, pr_number)
         return response.json()
 
 
@@ -153,22 +157,7 @@ async def fetch_pr_files(
                 params={"per_page": min(100, max_files - len(files))},
                 timeout=30.0,
             )
-
-            if response.status_code == 404:
-                raise Exception(
-                    f"PR not found: {owner}/{repo}#{pr_number}. "
-                    "The repository may be private or the PR doesn't exist."
-                )
-
-            if response.status_code == 403:
-                remaining = response.headers.get("X-RateLimit-Remaining", "unknown")
-                raise Exception(
-                    f"GitHub API rate limit exceeded. "
-                    f"Remaining requests: {remaining}. "
-                    "Add a GitHub token in settings to increase your rate limit."
-                )
-
-            response.raise_for_status()
+            _handle_github_error(response, owner, repo, pr_number)
             page_files = response.json()
             files.extend(page_files)
 
