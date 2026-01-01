@@ -1,4 +1,4 @@
-"""File tree component for displaying changed files."""
+"""File drawer component for displaying changed files."""
 
 import reflex as rx
 
@@ -65,8 +65,8 @@ def file_item(file: dict) -> rx.Component:
     )
 
 
-def file_tree_content() -> rx.Component:
-    """Inner content for the file tree."""
+def file_drawer_content() -> rx.Component:
+    """Inner content for the file drawer."""
     return rx.vstack(
         rx.hstack(
             rx.text("Changed Files", weight="bold", size="4"),
@@ -99,12 +99,12 @@ def file_tree_content() -> rx.Component:
 
 
 def file_drawer() -> rx.Component:
-    """Drawer component for the file tree."""
+    """Drawer component for the file drawer."""
     return rx.drawer.root(
         rx.drawer.overlay(z_index="5"),
         rx.drawer.portal(
             rx.drawer.content(
-                file_tree_content(),
+                file_drawer_content(),
                 height="100%",
                 width="320px",
                 padding="4",
@@ -130,11 +130,4 @@ def file_drawer_trigger() -> rx.Component:
             on_click=PRState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
         ),
         rx.fragment(),
-    )
-
-
-def file_tree() -> rx.Component:
-    """Component showing the list of changed files - now a drawer."""
-    return rx.fragment(
-        file_drawer(),
     )
