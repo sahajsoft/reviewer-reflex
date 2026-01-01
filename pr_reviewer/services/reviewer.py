@@ -63,11 +63,14 @@ async def review_diff(
 {diff}
 ```"""
 
-    async with client.messages.stream(
-        model=model,
-        max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_message}],
-    ) as stream:
-        async for text in stream.text_stream:
-            yield text
+    try:
+        async with client.messages.stream(
+            model=model,
+            max_tokens=1024,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_message}],
+        ) as stream:
+            async for text in stream.text_stream:
+                yield text
+    except anthropic.APIError as e:
+        raise Exception(f"Review failed for {filename}: {e}") from e
