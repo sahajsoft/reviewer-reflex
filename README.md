@@ -1,6 +1,6 @@
 # PR Reviewer
 
-A local-first GitHub PR review tool built with Reflex. Paste a PR URL, fetch the diff, and get AI-powered code review streamed file-by-file.
+A local-first GitHub PR review tool built with Reflex. Paste a PR URL, fetch the diff, and get AI-powered code reviews streamed file-by-file.
 
 ## Prerequisites
 
@@ -11,9 +11,19 @@ A local-first GitHub PR review tool built with Reflex. Paste a PR URL, fetch the
 
 ```bash
 just install
-cp .env.example .env  # Add your ANTHROPIC_API_KEY
+cp .env.example .env  # Add your API keys
 just dev
 ```
+
+## Environment Variables
+
+| Variable            | Required | Description                                      |
+| ------------------- | -------- | ------------------------------------------------ |
+| `ANTHROPIC_API_KEY` | Yes\*    | Claude API key                                   |
+| `OPENAI_API_KEY`    | Yes\*    | OpenAI API key                                   |
+| `GITHUB_TOKEN`      | No       | GitHub PAT for private repos & higher rate limit |
+
+\* At least one AI provider key is required.
 
 ## Tasks
 
@@ -29,6 +39,14 @@ just dev
 ## Features
 
 - Fetch public/private PRs via GitHub API
-- Stream AI code reviews using Claude (Opus, Sonnet, Haiku)
+- Stream AI code reviews with Anthropic (Claude) or OpenAI (GPT)
 - File-by-file navigation with syntax-highlighted diff viewer
 - Review individual files or batch review all at once
+- In-app settings for API keys, provider, and model selection
+
+## AI Providers
+
+| Provider  | Models                                               |
+| --------- | ---------------------------------------------------- |
+| Anthropic | Claude Opus 4.5, Claude Sonnet 4.5, Claude Haiku 4.5 |
+| OpenAI    | GPT-5.2, GPT-5.1 Codex, GPT-5.1 Codex Mini, GPT-4o   |
