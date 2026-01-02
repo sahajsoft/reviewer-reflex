@@ -62,12 +62,9 @@ class ReviewMixin(rx.State, mixin=True):
     @rx.var
     def reviewed_file_count(self) -> int:
         """Get the count of files that have been reviewed."""
-        reviewable = [
-            f.get("filename")
-            for f in self.files  # type: ignore[attr-defined]
-            if f.get("patch", "").strip()
-        ]
-        return len([f for f in reviewable if f in self.file_reviews])
+        return len(
+            [f for f in self.reviewable_files if f.get("filename") in self.file_reviews]
+        )
 
     @rx.var
     def review_progress_text(self) -> str:
@@ -105,7 +102,7 @@ class ReviewMixin(rx.State, mixin=True):
         self.review_error = ""
         self.is_reviewing = True
         self.current_review_file = target_file
-        self.file_reviews[target_file] = ""
+        self._update_file_review(target_file, "")
         yield
 
         try:
@@ -130,8 +127,7 @@ class ReviewMixin(rx.State, mixin=True):
         if self.is_reviewing:
             return  # Already reviewing, prevent concurrent reviews
 
-        reviewable = [f for f in self.files if f.get("patch", "").strip()]  # type: ignore[attr-defined]
-        if not reviewable:
+        if not self.reviewable_files:
             return
 
         self.review_error = ""
@@ -140,7 +136,7 @@ class ReviewMixin(rx.State, mixin=True):
         yield
 
         try:
-            for idx, file_data in enumerate(reviewable):
+            for idx, file_data in enumerate(self.reviewable_files):
                 filename = file_data.get("filename", "")
                 diff = file_data.get("patch", "")
 
@@ -153,7 +149,7 @@ class ReviewMixin(rx.State, mixin=True):
 
                 self.review_all_current_index = idx
                 self.current_review_file = filename
-                self.file_reviews[filename] = ""
+                self._update_file_review(filename, "")
                 yield
 
                 try:
@@ -168,7 +164,7 @@ class ReviewMixin(rx.State, mixin=True):
                         )
                         yield
                 except Exception as e:
-                    self.file_reviews[filename] = f"Error: {e}"
+                    self._update_file_review(filename, f"Error: {e}")
                     yield
         finally:
             self.is_reviewing_all = False
