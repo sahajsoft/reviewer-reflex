@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from pr_reviewer.models import AVAILABLE_MODELS, DEFAULT_MODEL
+from pr_reviewer.models import Provider
 from pr_reviewer.state import PRState
 
 
@@ -110,21 +110,30 @@ def settings_panel() -> rx.Component:
                     width="100%",
                 ),
                 rx.vstack(
-                    rx.text("AI Model", size="2", weight="medium"),
+                    rx.text("AI Provider", size="2", weight="medium"),
                     rx.select(
-                        [model[1] for model in AVAILABLE_MODELS],
-                        value=rx.match(
-                            PRState.model,
-                            *[(model[0], model[1]) for model in AVAILABLE_MODELS],
-                            "Claude Sonnet 4.5",  # default
-                        ),
-                        on_change=lambda v: PRState.set_model(  # pyright: ignore[reportArgumentType, reportCallIssue]
+                        ["Anthropic", "OpenAI"],
+                        value=PRState.provider_display_name,
+                        on_change=lambda v: PRState.set_provider(  # pyright: ignore[reportArgumentType, reportCallIssue]
                             rx.match(
                                 v,
-                                *[(model[1], model[0]) for model in AVAILABLE_MODELS],
-                                DEFAULT_MODEL,  # default
+                                ("Anthropic", Provider.ANTHROPIC),
+                                ("OpenAI", Provider.OPENAI),
+                                Provider.ANTHROPIC,
                             )
                         ),
+                        width="100%",
+                    ),
+                    spacing="1",
+                    align="start",
+                    width="100%",
+                ),
+                rx.vstack(
+                    rx.text("AI Model", size="2", weight="medium"),
+                    rx.select(
+                        PRState.available_model_names,
+                        value=PRState.model_display_name,
+                        on_change=PRState.set_model_by_display_name,  # pyright: ignore[reportArgumentType]
                         width="100%",
                     ),
                     spacing="1",

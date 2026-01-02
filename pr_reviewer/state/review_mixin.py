@@ -14,6 +14,7 @@ class ReviewMixin(rx.State, mixin=True):
     Note: This mixin expects the following attributes from the parent state:
     - files: list[dict[str, Any]]
     - selected_file: str
+    - provider: str
     - model: str
     - github_token: str
     """
@@ -108,7 +109,12 @@ class ReviewMixin(rx.State, mixin=True):
         yield
 
         try:
-            async for chunk in review_diff(target_file, diff, model=self.model):  # type: ignore[attr-defined]
+            async for chunk in review_diff(
+                target_file,
+                diff,
+                model=self.model,  # type: ignore[attr-defined]
+                provider=self.provider,  # type: ignore[attr-defined]
+            ):
                 self._update_file_review(
                     target_file, self.file_reviews.get(target_file, "") + chunk
                 )
@@ -151,7 +157,12 @@ class ReviewMixin(rx.State, mixin=True):
                 yield
 
                 try:
-                    async for chunk in review_diff(filename, diff, model=self.model):  # type: ignore[attr-defined]
+                    async for chunk in review_diff(
+                        filename,
+                        diff,
+                        model=self.model,  # type: ignore[attr-defined]
+                        provider=self.provider,  # type: ignore[attr-defined]
+                    ):
                         self._update_file_review(
                             filename, self.file_reviews.get(filename, "") + chunk
                         )
