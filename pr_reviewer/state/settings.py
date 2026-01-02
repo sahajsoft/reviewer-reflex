@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from pr_reviewer.models import (
+from pr_reviewer.constants import (
     DEFAULT_MODEL,
     DEFAULT_PROVIDER,
     Provider,

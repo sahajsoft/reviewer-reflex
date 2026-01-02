@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import collections.abc
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import reflex as rx
 
 from pr_reviewer.services.reviewer import review_diff
-
-if TYPE_CHECKING:
-    pass
 
 
 class ReviewState(rx.State):
@@ -23,7 +20,11 @@ class ReviewState(rx.State):
     is_reviewing_all: bool = False
     review_all_current_index: int = 0
 
-    # Synced from PRDataState for local access
+    # Synced from PRDataState for computed var access.
+    # Reflex computed vars (@rx.var) cannot use async get_state() to access
+    # other states, so we must sync these values when they change in PRDataState.
+    # Sync points: PRDataState.fetch_pr() syncs files, PRDataState.select_file()
+    # syncs selected_file.
     files: list[dict[str, Any]] = []
     selected_file: str = ""
 

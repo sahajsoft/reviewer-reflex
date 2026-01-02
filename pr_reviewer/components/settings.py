@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from pr_reviewer.models import Provider
+from pr_reviewer.constants import Provider
 from pr_reviewer.state import SettingsState
 
 

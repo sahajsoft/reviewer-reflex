@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from pr_reviewer.models import FileStatus
+from pr_reviewer.constants import FileStatus
 from pr_reviewer.state import PRDataState
 
 

@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import collections.abc
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import reflex as rx
 
 from pr_reviewer.services.github import fetch_pr_files, fetch_pr_metadata, parse_pr_url
-
-if TYPE_CHECKING:
-    pass
 
 
 class PRDataState(rx.State):
@@ -77,9 +74,7 @@ class PRDataState(rx.State):
     @rx.var
     def selected_file_diff(self) -> str:
         """Get the diff patch for the currently selected file."""
-        if not self.selected_file:
-            return ""
-        file_data = self._find_file_by_name(self.selected_file)
+        file_data = self.selected_file_data
         return file_data.get("patch", "") if file_data else ""
 
     @rx.var
@@ -90,31 +85,27 @@ class PRDataState(rx.State):
     @rx.var
     def selected_file_additions(self) -> int:
         """Get additions count for the selected file."""
-        if not self.selected_file:
-            return 0
-        file_data = self._find_file_by_name(self.selected_file)
+        file_data = self.selected_file_data
         return file_data.get("additions", 0) if file_data else 0
 
     @rx.var
     def selected_file_deletions(self) -> int:
         """Get deletions count for the selected file."""
-        if not self.selected_file:
-            return 0
-        file_data = self._find_file_by_name(self.selected_file)
+        file_data = self.selected_file_data
         return file_data.get("deletions", 0) if file_data else 0
 
     @rx.var
     def selected_file_status(self) -> str:
         """Get status for the selected file."""
-        if not self.selected_file:
-            return ""
-        file_data = self._find_file_by_name(self.selected_file)
+        file_data = self.selected_file_data
         return file_data.get("status", "") if file_data else ""
 
     async def select_file(self, filename: str) -> None:
-        """Select a file to view."""
+        """Select a file to view.
+
+        Syncs selected_file to ReviewState for computed var access.
+        """
         self.selected_file = filename
-        # Sync to ReviewState
         from pr_reviewer.state.review import ReviewState
 
         review_state = await self.get_state(ReviewState)
@@ -153,6 +144,9 @@ class PRDataState(rx.State):
 
     async def fetch_pr(self) -> collections.abc.AsyncGenerator[None, None]:
         """Fetch PR data from GitHub."""
+        if self.is_loading:
+            return  # Prevent concurrent fetch calls
+
         from pr_reviewer.state.review import ReviewState
         from pr_reviewer.state.settings import SettingsState
 
@@ -194,7 +188,7 @@ class PRDataState(rx.State):
             self.files = files_data.get("files", [])
             self.files_truncated = files_data.get("truncated", False)
 
-            # Sync files to ReviewState
+            # Sync files to ReviewState for computed var access
             review_state.set_files(self.files)
         except Exception as e:
             self.error_message = str(e)

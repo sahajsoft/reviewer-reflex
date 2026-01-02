@@ -6,7 +6,7 @@ from collections.abc import AsyncGenerator
 import anthropic
 import openai
 
-from pr_reviewer.models import DEFAULT_MODEL, DEFAULT_PROVIDER, Provider
+from pr_reviewer.constants import DEFAULT_MODEL, DEFAULT_PROVIDER, Provider
 
 SYSTEM_PROMPT = """You are an expert code reviewer. Analyze the provided diff and give a concise, actionable review.
 

@@ -1,7 +1,9 @@
-"""Model definitions for PR Reviewer - single source of truth."""
+"""Constants for PR Reviewer - single source of truth."""
+
+from enum import StrEnum
 
 
-class FileStatus:
+class FileStatus(StrEnum):
     """Constants for file status values."""
 
     ADDED = "added"
@@ -10,7 +12,7 @@ class FileStatus:
     MODIFIED = "modified"
 
 
-class Provider:
+class Provider(StrEnum):
     """AI provider constants."""
 
     ANTHROPIC = "anthropic"
@@ -56,8 +58,3 @@ def get_default_model_for_provider(provider: str) -> str:
     elif provider == Provider.OPENAI:
         return OPENAI_MODELS["gpt-5.2"][0]
     return DEFAULT_MODEL
-
-
-# For backwards compatibility
-MODELS = ANTHROPIC_MODELS
-AVAILABLE_MODELS = [(v[0], v[1]) for v in ANTHROPIC_MODELS.values()]
