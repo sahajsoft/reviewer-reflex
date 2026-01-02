@@ -1,23 +1,20 @@
-"""Review state mixin for AI code review functionality."""
+"""Review state for AI code review functionality."""
+
+from __future__ import annotations
 
 import collections.abc
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import reflex as rx
 
 from pr_reviewer.services.reviewer import review_diff
 
+if TYPE_CHECKING:
+    pass
 
-class ReviewMixin(rx.State, mixin=True):
-    """Mixin for review-related state.
 
-    Note: This mixin expects the following attributes from the parent state:
-    - files: list[dict[str, Any]]
-    - selected_file: str
-    - provider: str
-    - model: str
-    - github_token: str
-    """
+class ReviewState(rx.State):
+    """State for AI code review functionality."""
 
     file_reviews: dict[str, str] = {}
     current_review_file: str = ""
@@ -26,18 +23,38 @@ class ReviewMixin(rx.State, mixin=True):
     is_reviewing_all: bool = False
     review_all_current_index: int = 0
 
-    def _update_file_review(self, filename: str, content: str) -> None:
-        """Update a file review, triggering proper state reactivity."""
+    # Synced from PRDataState for local access
+    files: list[dict[str, Any]] = []
+    selected_file: str = ""
+
+    def _set_file_review(self, filename: str, content: str) -> None:
+        """Set a file review, triggering proper state reactivity."""
         updated = dict(self.file_reviews)
         updated[filename] = content
         self.file_reviews = updated
 
+    def set_files(self, files: list[dict[str, Any]]) -> None:
+        """Set files for review (called after PR fetch)."""
+        self.files = files
+        self.file_reviews = {}
+
+    def reset_review_state(self) -> None:
+        """Reset all review-related state."""
+        self.file_reviews = {}
+        self.current_review_file = ""
+        self.is_reviewing = False
+        self.review_error = ""
+        self.is_reviewing_all = False
+        self.review_all_current_index = 0
+        self.files = []
+        self.selected_file = ""
+
     @rx.var
     def selected_file_review(self) -> str:
         """Get the review for the currently selected file."""
-        if not self.selected_file:  # type: ignore[attr-defined]
+        if not self.selected_file:
             return ""
-        return self.file_reviews.get(self.selected_file, "")  # type: ignore[attr-defined]
+        return self.file_reviews.get(self.selected_file, "")
 
     @rx.var
     def has_selected_file_review(self) -> bool:
@@ -47,12 +64,12 @@ class ReviewMixin(rx.State, mixin=True):
     @rx.var
     def is_reviewing_selected_file(self) -> bool:
         """Check if we're currently reviewing the selected file."""
-        return self.is_reviewing and self.current_review_file == self.selected_file  # type: ignore[attr-defined]
+        return self.is_reviewing and self.current_review_file == self.selected_file
 
     @rx.var
     def reviewable_files(self) -> list[dict[str, Any]]:
         """Get files that have diffs and can be reviewed."""
-        return [f for f in self.files if f.get("patch", "").strip()]  # type: ignore[attr-defined]
+        return [f for f in self.files if f.get("patch", "").strip()]
 
     @rx.var
     def reviewable_file_count(self) -> int:
@@ -62,9 +79,8 @@ class ReviewMixin(rx.State, mixin=True):
     @rx.var
     def reviewed_file_count(self) -> int:
         """Get the count of files that have been reviewed."""
-        return len(
-            [f for f in self.reviewable_files if f.get("filename") in self.file_reviews]
-        )
+        reviewable = self.reviewable_files
+        return len([f for f in reviewable if f.get("filename") in self.file_reviews])
 
     @rx.var
     def review_progress_text(self) -> str:
@@ -81,16 +97,18 @@ class ReviewMixin(rx.State, mixin=True):
 
     async def review_file(self) -> collections.abc.AsyncGenerator[None, None]:
         """Review the currently selected file using AI."""
+        from pr_reviewer.state.settings import SettingsState
+
         if self.is_reviewing:
             return  # Already reviewing, prevent concurrent reviews
 
-        target_file = self.selected_file  # type: ignore[attr-defined]
+        target_file = self.selected_file
         if not target_file:
             return
 
         # Find the diff for this file
         diff = ""
-        for f in self.files:  # type: ignore[attr-defined]
+        for f in self.files:
             if f.get("filename") == target_file:
                 diff = f.get("patch", "")
                 break
@@ -102,17 +120,18 @@ class ReviewMixin(rx.State, mixin=True):
         self.review_error = ""
         self.is_reviewing = True
         self.current_review_file = target_file
-        self._update_file_review(target_file, "")
+        self._set_file_review(target_file, "")
         yield
 
         try:
+            settings = await self.get_state(SettingsState)
             async for chunk in review_diff(
                 target_file,
                 diff,
-                model=self.model,  # type: ignore[attr-defined]
-                provider=self.provider,  # type: ignore[attr-defined]
+                model=settings.model,
+                provider=settings.provider,
             ):
-                self._update_file_review(
+                self._set_file_review(
                     target_file, self.file_reviews.get(target_file, "") + chunk
                 )
                 yield
@@ -124,10 +143,13 @@ class ReviewMixin(rx.State, mixin=True):
 
     async def review_all_files(self) -> collections.abc.AsyncGenerator[None, None]:
         """Review all files with diffs using AI."""
+        from pr_reviewer.state.settings import SettingsState
+
         if self.is_reviewing:
             return  # Already reviewing, prevent concurrent reviews
 
-        if not self.reviewable_files:
+        reviewable = self.reviewable_files
+        if not reviewable:
             return
 
         self.review_error = ""
@@ -136,7 +158,8 @@ class ReviewMixin(rx.State, mixin=True):
         yield
 
         try:
-            for idx, file_data in enumerate(self.reviewable_files):
+            settings = await self.get_state(SettingsState)
+            for idx, file_data in enumerate(reviewable):
                 filename = file_data.get("filename", "")
                 diff = file_data.get("patch", "")
 
@@ -149,22 +172,22 @@ class ReviewMixin(rx.State, mixin=True):
 
                 self.review_all_current_index = idx
                 self.current_review_file = filename
-                self._update_file_review(filename, "")
+                self._set_file_review(filename, "")
                 yield
 
                 try:
                     async for chunk in review_diff(
                         filename,
                         diff,
-                        model=self.model,  # type: ignore[attr-defined]
-                        provider=self.provider,  # type: ignore[attr-defined]
+                        model=settings.model,
+                        provider=settings.provider,
                     ):
-                        self._update_file_review(
+                        self._set_file_review(
                             filename, self.file_reviews.get(filename, "") + chunk
                         )
                         yield
                 except Exception as e:
-                    self._update_file_review(filename, f"Error: {e}")
+                    self._set_file_review(filename, f"Error: {e}")
                     yield
         finally:
             self.is_reviewing_all = False

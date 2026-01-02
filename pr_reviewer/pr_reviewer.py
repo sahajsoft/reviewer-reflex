@@ -12,14 +12,14 @@ from pr_reviewer.components import (
     review_panel,
     settings_panel,
 )
-from pr_reviewer.state import PRState
+from pr_reviewer.state import PRDataState
 
 
 def main_content() -> rx.Component:
     """Main content area with diff view and review panel."""
 
     return rx.cond(
-        PRState.has_pr_loaded,
+        PRDataState.has_pr_loaded,
         rx.fragment(
             file_drawer(),  # Drawer - renders as overlay
             rx.hstack(

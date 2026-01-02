@@ -1,4 +1,4 @@
-"""Settings state mixin for token and model configuration."""
+"""Settings state for token and model configuration."""
 
 import reflex as rx
 
@@ -11,8 +11,8 @@ from pr_reviewer.models import (
 )
 
 
-class SettingsMixin(rx.State, mixin=True):
-    """Mixin for settings-related state."""
+class SettingsState(rx.State):
+    """State for settings configuration."""
 
     settings_open: bool = False
     github_token: str = ""

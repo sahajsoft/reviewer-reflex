@@ -3,7 +3,7 @@
 import reflex as rx
 
 from pr_reviewer.models import FileStatus
-from pr_reviewer.state import PRState
+from pr_reviewer.state import PRDataState
 
 
 def file_status_indicator(status: str) -> rx.Component:
@@ -55,13 +55,13 @@ def file_list_item(file: dict) -> rx.Component:
         cursor="pointer",
         _hover={"background": rx.color("gray", 3)},
         background=rx.cond(
-            PRState.selected_file == filename,
+            PRDataState.selected_file == filename,
             rx.color("blue", 3),
             "transparent",
         ),
         on_click=[
-            lambda: PRState.select_file(filename),  # pyright: ignore[reportCallIssue]
-            PRState.close_file_drawer,  # pyright: ignore[reportArgumentType]
+            lambda: PRDataState.select_file(filename),  # pyright: ignore[reportCallIssue]
+            PRDataState.close_file_drawer,  # pyright: ignore[reportArgumentType]
         ],
     )
 
@@ -76,7 +76,7 @@ def file_drawer_content() -> rx.Component:
                 rx.icon("x", size=18),
                 variant="ghost",
                 size="1",
-                on_click=PRState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
+                on_click=PRDataState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
             ),
             width="100%",
             align="center",
@@ -84,7 +84,7 @@ def file_drawer_content() -> rx.Component:
         rx.divider(),
         rx.scroll_area(
             rx.vstack(
-                rx.foreach(PRState.files, file_list_item),
+                rx.foreach(PRDataState.files, file_list_item),
                 spacing="1",
                 width="100%",
             ),
@@ -112,8 +112,8 @@ def file_drawer() -> rx.Component:
                 background_color=rx.color("gray", 1),
             ),
         ),
-        open=PRState.file_drawer_open,
-        on_open_change=PRState.set_file_drawer_open,  # pyright: ignore[reportArgumentType]
+        open=PRDataState.file_drawer_open,
+        on_open_change=PRDataState.set_file_drawer_open,  # pyright: ignore[reportArgumentType]
         direction="left",
     )
 
@@ -121,14 +121,14 @@ def file_drawer() -> rx.Component:
 def file_drawer_trigger() -> rx.Component:
     """Button to open the file drawer."""
     return rx.cond(
-        PRState.has_pr_loaded,
+        PRDataState.has_pr_loaded,
         rx.button(
             rx.icon("panel-left", size=16),
             rx.text("Files"),
-            rx.badge(PRState.file_count, variant="soft"),
+            rx.badge(PRDataState.file_count, variant="soft"),
             variant="outline",
             size="2",
-            on_click=PRState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
+            on_click=PRDataState.toggle_file_drawer,  # pyright: ignore[reportArgumentType]
         ),
         rx.fragment(),
     )

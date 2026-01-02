@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from pr_reviewer.state import PRState
+from pr_reviewer.state import PRDataState, ReviewState, SettingsState
 
 
 def settings_button() -> rx.Component:
@@ -11,7 +11,7 @@ def settings_button() -> rx.Component:
         rx.icon("settings", size=20),
         variant="ghost",
         size="2",
-        on_click=PRState.toggle_settings,  # pyright: ignore[reportArgumentType]
+        on_click=SettingsState.toggle_settings,  # pyright: ignore[reportArgumentType]
         title="Settings",
     )
 
@@ -19,15 +19,15 @@ def settings_button() -> rx.Component:
 def review_all_button() -> rx.Component:
     """Button to review all files."""
     return rx.cond(
-        PRState.has_pr_loaded,
+        PRDataState.has_pr_loaded,
         rx.cond(
-            PRState.is_reviewing_all,
+            ReviewState.is_reviewing_all,
             rx.button(
                 rx.hstack(
                     rx.spinner(size="1"),
                     rx.text("Reviewing..."),
                     rx.badge(
-                        PRState.review_progress_text,
+                        ReviewState.review_progress_text,
                         color="blue",
                         variant="soft",
                     ),
@@ -37,13 +37,13 @@ def review_all_button() -> rx.Component:
                 size="2",
             ),
             rx.cond(
-                PRState.all_files_reviewed,
+                ReviewState.all_files_reviewed,
                 rx.button(
                     rx.hstack(
                         rx.icon("circle-check", size=16),
                         rx.text("All Reviewed"),
                         rx.badge(
-                            PRState.review_progress_text,
+                            ReviewState.review_progress_text,
                             color="green",
                             variant="soft",
                         ),
@@ -59,9 +59,9 @@ def review_all_button() -> rx.Component:
                         rx.icon("sparkles", size=16),
                         rx.text("Review All"),
                         rx.cond(
-                            PRState.reviewed_file_count > 0,
+                            ReviewState.reviewed_file_count > 0,
                             rx.badge(
-                                PRState.review_progress_text,
+                                ReviewState.review_progress_text,
                                 color="blue",
                                 variant="soft",
                             ),
@@ -69,9 +69,9 @@ def review_all_button() -> rx.Component:
                         ),
                         spacing="2",
                     ),
-                    on_click=PRState.review_all_files,  # pyright: ignore[reportArgumentType]
-                    disabled=PRState.is_reviewing
-                    | (PRState.reviewable_file_count == 0),
+                    on_click=ReviewState.review_all_files,  # pyright: ignore[reportArgumentType]
+                    disabled=ReviewState.is_reviewing
+                    | (ReviewState.reviewable_file_count == 0),
                     size="2",
                 ),
             ),

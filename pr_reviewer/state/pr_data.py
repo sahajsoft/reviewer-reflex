@@ -1,23 +1,25 @@
-"""PR data state mixin for fetching and storing PR information."""
+"""PR data state for fetching and storing PR information."""
+
+from __future__ import annotations
 
 import collections.abc
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import reflex as rx
 
 from pr_reviewer.services.github import fetch_pr_files, fetch_pr_metadata, parse_pr_url
 
+if TYPE_CHECKING:
+    pass
 
-class PRDataMixin(rx.State, mixin=True):
-    """Mixin for PR data state.
 
-    Note: This mixin expects the following attributes from the parent state:
-    - github_token: str
-    - file_reviews: dict[str, str]
-    - review_error: str
-    """
+class PRDataState(rx.State):
+    """State for PR data fetching and storage."""
 
+    # PR input
     pr_url: str = ""
+
+    # PR metadata (from GitHub API)
     pr_title: str = ""
     pr_author: str = ""
     pr_description: str = ""
@@ -25,11 +27,15 @@ class PRDataMixin(rx.State, mixin=True):
     pr_head_branch: str = ""
     total_additions: int = 0
     total_deletions: int = 0
+
+    # PR files
     files: list[dict[str, Any]] = []
     files_truncated: bool = False
+    selected_file: str = ""
+
+    # Loading/error state
     is_loading: bool = False
     error_message: str = ""
-    selected_file: str = ""
 
     # UI state
     file_drawer_open: bool = False
@@ -105,9 +111,14 @@ class PRDataMixin(rx.State, mixin=True):
         file_data = self._find_file_by_name(self.selected_file)
         return file_data.get("status", "") if file_data else ""
 
-    def select_file(self, filename: str) -> None:
+    async def select_file(self, filename: str) -> None:
         """Select a file to view."""
         self.selected_file = filename
+        # Sync to ReviewState
+        from pr_reviewer.state.review import ReviewState
+
+        review_state = await self.get_state(ReviewState)
+        review_state.selected_file = filename
 
     def toggle_description(self) -> None:
         """Toggle the description expanded state."""
@@ -138,13 +149,18 @@ class PRDataMixin(rx.State, mixin=True):
         self.files = []
         self.files_truncated = False
         self.selected_file = ""
-        self.file_reviews = {}  # type: ignore[attr-defined]
-        self.review_error = ""  # type: ignore[attr-defined]
         self.description_expanded = False
 
     async def fetch_pr(self) -> collections.abc.AsyncGenerator[None, None]:
         """Fetch PR data from GitHub."""
+        from pr_reviewer.state.review import ReviewState
+        from pr_reviewer.state.settings import SettingsState
+
         self._reset_pr_state()
+
+        # Reset ReviewState
+        review_state = await self.get_state(ReviewState)
+        review_state.reset_review_state()
 
         if not self.pr_url.strip():
             self.error_message = "Please enter a PR URL"
@@ -163,7 +179,8 @@ class PRDataMixin(rx.State, mixin=True):
         yield
 
         try:
-            token = self.github_token or None  # type: ignore[attr-defined]
+            settings = await self.get_state(SettingsState)
+            token = settings.github_token or None
             metadata = await fetch_pr_metadata(owner, repo, pr_number, token=token)
             self.pr_title = metadata.get("title", "")
             self.pr_author = metadata.get("user", {}).get("login", "")
@@ -176,6 +193,9 @@ class PRDataMixin(rx.State, mixin=True):
             files_data = await fetch_pr_files(owner, repo, pr_number, token=token)
             self.files = files_data.get("files", [])
             self.files_truncated = files_data.get("truncated", False)
+
+            # Sync files to ReviewState
+            review_state.set_files(self.files)
         except Exception as e:
             self.error_message = str(e)
         finally:

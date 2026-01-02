@@ -2,13 +2,13 @@
 
 import reflex as rx
 
-from pr_reviewer.state import PRState
+from pr_reviewer.state import PRDataState, ReviewState, SettingsState
 
 
 def review_button() -> rx.Component:
     """Button to trigger AI review of the selected file."""
     return rx.cond(
-        PRState.is_reviewing_selected_file,
+        ReviewState.is_reviewing_selected_file,
         rx.button(
             rx.hstack(
                 rx.spinner(size="1"),
@@ -24,8 +24,8 @@ def review_button() -> rx.Component:
                 rx.text("Review This File"),
                 spacing="2",
             ),
-            on_click=PRState.review_file,  # pyright: ignore[reportArgumentType]
-            disabled=~PRState.selected_file_has_diff | PRState.is_reviewing,
+            on_click=ReviewState.review_file,  # pyright: ignore[reportArgumentType]
+            disabled=~PRDataState.selected_file_has_diff | ReviewState.is_reviewing,
             width="100%",
         ),
     )
@@ -34,11 +34,11 @@ def review_button() -> rx.Component:
 def review_content() -> rx.Component:
     """Display the AI review content."""
     return rx.cond(
-        PRState.has_selected_file_review,
+        ReviewState.has_selected_file_review,
         rx.scroll_area(
             rx.box(
                 rx.markdown(
-                    PRState.selected_file_review,
+                    ReviewState.selected_file_review,
                     component_map={
                         "code": lambda text: rx.code(
                             text,
@@ -75,7 +75,7 @@ def review_content() -> rx.Component:
             width="100%",
         ),
         rx.cond(
-            PRState.is_reviewing_selected_file,
+            ReviewState.is_reviewing_selected_file,
             rx.box(
                 rx.vstack(
                     rx.spinner(size="3"),
@@ -112,9 +112,9 @@ def review_content() -> rx.Component:
 def review_error_display() -> rx.Component:
     """Display review errors."""
     return rx.cond(
-        PRState.review_error != "",
+        ReviewState.review_error != "",
         rx.callout(
-            PRState.review_error,
+            ReviewState.review_error,
             icon="triangle-alert",
             color="red",
             size="1",
@@ -126,14 +126,14 @@ def review_error_display() -> rx.Component:
 def review_panel() -> rx.Component:
     """Panel for AI code review of the selected file."""
     return rx.cond(
-        PRState.selected_file != "",
+        PRDataState.selected_file != "",
         rx.box(
             rx.vstack(
                 rx.hstack(
                     rx.icon("bot", size=18),
                     rx.text("AI Review", weight="bold", size="3"),
                     rx.spacer(),
-                    rx.badge(PRState.model, color_scheme="gray", size="1"),
+                    rx.badge(SettingsState.model, color_scheme="gray", size="1"),
                     spacing="2",
                     align="center",
                     width="100%",

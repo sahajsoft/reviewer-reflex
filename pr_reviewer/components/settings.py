@@ -3,13 +3,13 @@
 import reflex as rx
 
 from pr_reviewer.models import Provider
-from pr_reviewer.state import PRState
+from pr_reviewer.state import SettingsState
 
 
 def settings_panel() -> rx.Component:
     """Collapsible settings panel."""
     return rx.cond(
-        PRState.settings_open,
+        SettingsState.settings_open,
         rx.card(
             rx.vstack(
                 rx.hstack(
@@ -20,7 +20,7 @@ def settings_panel() -> rx.Component:
                         rx.icon("x", size=16),
                         variant="ghost",
                         size="1",
-                        on_click=PRState.toggle_settings,  # pyright: ignore[reportArgumentType]
+                        on_click=SettingsState.toggle_settings,  # pyright: ignore[reportArgumentType]
                     ),
                     spacing="2",
                     align="center",
@@ -31,7 +31,7 @@ def settings_panel() -> rx.Component:
                     rx.hstack(
                         rx.text("GitHub Token", size="2", weight="medium"),
                         rx.cond(
-                            PRState.has_github_token,
+                            SettingsState.has_github_token,
                             rx.badge("Set", color="green", size="1"),
                             rx.badge("Not set", color="gray", size="1"),
                         ),
@@ -40,8 +40,8 @@ def settings_panel() -> rx.Component:
                     ),
                     rx.input(
                         placeholder="ghp_xxxx (optional, for private repos)",
-                        value=PRState.github_token,
-                        on_change=PRState.set_github_token,  # pyright: ignore[reportArgumentType]
+                        value=SettingsState.github_token,
+                        on_change=SettingsState.set_github_token,  # pyright: ignore[reportArgumentType]
                         type="password",
                         width="100%",
                     ),
@@ -113,8 +113,8 @@ def settings_panel() -> rx.Component:
                     rx.text("AI Provider", size="2", weight="medium"),
                     rx.select(
                         ["Anthropic", "OpenAI"],
-                        value=PRState.provider_display_name,
-                        on_change=lambda v: PRState.set_provider(  # pyright: ignore[reportArgumentType, reportCallIssue]
+                        value=SettingsState.provider_display_name,
+                        on_change=lambda v: SettingsState.set_provider(  # pyright: ignore[reportArgumentType, reportCallIssue]
                             rx.match(
                                 v,
                                 ("Anthropic", Provider.ANTHROPIC),
@@ -131,9 +131,9 @@ def settings_panel() -> rx.Component:
                 rx.vstack(
                     rx.text("AI Model", size="2", weight="medium"),
                     rx.select(
-                        PRState.available_model_names,
-                        value=PRState.model_display_name,
-                        on_change=PRState.set_model_by_display_name,  # pyright: ignore[reportArgumentType]
+                        SettingsState.available_model_names,
+                        value=SettingsState.model_display_name,
+                        on_change=SettingsState.set_model_by_display_name,  # pyright: ignore[reportArgumentType]
                         width="100%",
                     ),
                     spacing="1",

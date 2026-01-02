@@ -3,37 +3,37 @@
 import reflex as rx
 
 from pr_reviewer.models import FileStatus
-from pr_reviewer.state import PRState
+from pr_reviewer.state import PRDataState
 
 
 def diff_header() -> rx.Component:
     """Header showing filename and change stats."""
     return rx.hstack(
-        rx.text(PRState.selected_file, weight="bold", size="3"),
+        rx.text(PRDataState.selected_file, weight="bold", size="3"),
         rx.spacer(),
         rx.hstack(
             rx.cond(
-                PRState.selected_file_additions > 0,
+                PRDataState.selected_file_additions > 0,
                 rx.text(
-                    "+" + PRState.selected_file_additions.to_string(),  # pyright: ignore[reportAttributeAccessIssue]
+                    "+" + PRDataState.selected_file_additions.to_string(),  # pyright: ignore[reportAttributeAccessIssue]
                     color="green",
                     size="2",
                 ),
                 rx.fragment(),
             ),
             rx.cond(
-                PRState.selected_file_deletions > 0,
+                PRDataState.selected_file_deletions > 0,
                 rx.text(
-                    "-" + PRState.selected_file_deletions.to_string(),  # pyright: ignore[reportAttributeAccessIssue]
+                    "-" + PRDataState.selected_file_deletions.to_string(),  # pyright: ignore[reportAttributeAccessIssue]
                     color="red",
                     size="2",
                 ),
                 rx.fragment(),
             ),
             rx.badge(
-                PRState.selected_file_status,
+                PRDataState.selected_file_status,
                 color=rx.match(
-                    PRState.selected_file_status,
+                    PRDataState.selected_file_status,
                     (FileStatus.ADDED, "green"),
                     (FileStatus.REMOVED, "red"),
                     (FileStatus.RENAMED, "orange"),
@@ -53,10 +53,10 @@ def diff_header() -> rx.Component:
 def diff_content() -> rx.Component:
     """Display the diff content with syntax highlighting."""
     return rx.cond(
-        PRState.selected_file_has_diff,
+        PRDataState.selected_file_has_diff,
         rx.scroll_area(
             rx.code_block(
-                PRState.selected_file_diff,
+                PRDataState.selected_file_diff,
                 language="diff",
                 show_line_numbers=True,
                 wrap_long_lines=True,
@@ -90,7 +90,7 @@ def diff_content() -> rx.Component:
 def diff_view() -> rx.Component:
     """Component for displaying the diff of a selected file."""
     return rx.cond(
-        PRState.selected_file != "",
+        PRDataState.selected_file != "",
         rx.box(
             rx.vstack(
                 diff_header(),
